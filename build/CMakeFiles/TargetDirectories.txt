@@ -1,3 +1,0 @@
-/home/irregular/EternalHorde/build/CMakeFiles/eternal_horde.dir
-/home/irregular/EternalHorde/build/CMakeFiles/edit_cache.dir
-/home/irregular/EternalHorde/build/CMakeFiles/rebuild_cache.dir
