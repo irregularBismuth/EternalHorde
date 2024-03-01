@@ -1,10 +1,13 @@
 
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/System.hpp>
 #include <SFML/Audio.hpp>
 
 //#include <windows.h>
+#include <SFML/System/Vector2.hpp>
+#include <cstdlib>
 #include <time.h>
 #include <iostream>
 #include <vector>
@@ -15,282 +18,109 @@
 #include "Map.h"
 #include "GUI.h"
 #include "wave.h"
+#include "gamestate.h"
 
+const int WindowH = 600;
+const int WindowW = 800; 
 
-const int WindowH = 1080;
-const int WindowW = 1920; 
-using namespace sf;
+void setupMenuItem(sf::Text& menuItem,sf::RectangleShape& menuRect, sf::Font& font, const std::string& text, float x, float y) {
+    menuItem.setFont(font);
+    menuItem.setString(text);
+    menuItem.setCharacterSize(24); 
+    menuItem.setFillColor(sf::Color::White);
+    menuItem.setPosition(x, y);
+    float padding = 10.0f; 
+    sf::FloatRect textRect = menuItem.getLocalBounds();
+    menuItem.setOrigin(textRect.left + textRect.width/2.0f, textRect.top + textRect.height/2.0f);
+    menuItem.setPosition(x, y);
+
+    menuRect.setSize(sf::Vector2f(textRect.width + 2 * padding, textRect.height + 2 * padding));
+    menuRect.setOrigin(menuRect.getSize().x / 2.0f, menuRect.getSize().y / 2.0f);
+    menuRect.setPosition(x, y);
+    menuRect.setFillColor(sf::Color::Blue); 
+    menuRect.setOutlineColor(sf::Color::White);
+    menuRect.setOutlineThickness(2.0f); 
+
+}
+
 
 int main()
 {
 	srand(time(NULL));
-	RenderWindow window(VideoMode(WindowW, WindowH), "MittSpel", Style::Fullscreen); //ritar föntstret
-	window.setFramerateLimit(60);
-	//instanser av olika klasser
-	cPlayer* player = new cPlayer;
-	cEnemy* enemy = new cEnemy;
-	cMap* map = new cMap;
-	cGUI* gui = new cGUI;
-	cWave* wave = new cWave;
-	
-	
+  sf::RenderWindow window(sf::VideoMode(WindowW, WindowH), "eternal_horde", sf::Style::Default); //ritar föntstret
+	window.setFramerateLimit(144);
+  
+  
+    sf::Font font;
+    if (!font.loadFromFile("../Fonts/arial.ttf")) { 
+        std::cerr << "Error loading font\n";
+        return -1;
+    }
 
-	int tmp = -1;
-	bool temp = false;
-	bool escape = false;
-	bool prevScore = false;
-	bool options = false;
-	bool options1 = false;
-	//för menyn loopen 
-	while (temp == false) {
-	
-		int tmp = gui->chooseOption(window);
+    sf::Text loadingText;
+    loadingText.setFont(font);
+    loadingText.setString("Loading...");
+    loadingText.setCharacterSize(24); // in pixels
+    loadingText.setFillColor(sf::Color::White);
+    loadingText.setPosition(WindowW / 2 - loadingText.getLocalBounds().width / 2, WindowH / 2 - loadingText.getLocalBounds().height / 2);
 
-		if (tmp == 0) {
-			temp = true;
-			prevScore = true;
+    sf::Text playText, helpText, quitText;
+   sf::RectangleShape playRect, helpRect, quitRect;
+    setupMenuItem(playText,playRect, font, "Play", 350, 200);
+    setupMenuItem(helpText,helpRect, font, "Help", 350, 250);
+    setupMenuItem(quitText,quitRect, font, "Quit", 350, 300);
+    GameState currentState = MainMenu;
+   while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
+                window.close();
 
-			player->init();
-			enemy->init();
-			wave->init();
-			map->init();
-			
-			while (player->alive() && window.isOpen() && temp == true) //själva gameloopen som hela tiden tickar medans man har tryck start game
-			{
-				if (Keyboard::isKeyPressed(Keyboard::Escape)) //trycker man escape sätts en bool esape till true
-					escape = true;
-				if (Keyboard::isKeyPressed(Keyboard::Tab)) // trycker man tab försviner menyn
-					escape = false;
+            if (currentState == MainMenu) {
+                if (event.type == sf::Event::MouseButtonPressed) {
+                    if (event.mouseButton.button == sf::Mouse::Left) {
+                        sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+                        if (helpRect.getGlobalBounds().contains(mousePos.x, mousePos.y)) {
+                            currentState = HelpScreen; 
+                        }
+                        if(quitRect.getGlobalBounds().contains(mousePos.x,mousePos.y)) {
+                          window.clear();
+                          window.close();
+                          return EXIT_SUCCESS;
+                      }
+                    }
+                }
+            } else if (currentState == HelpScreen) {
+                if (event.type == sf::Event::KeyPressed) {
+                    if (event.key.code == sf::Keyboard::Escape) { // Press Esc to go back
+                        currentState = MainMenu;
+                    }
+                }
+            } 
+        }
 
-				if (escape == false) {//gör detta då escape är false
-					player->updateDeltaTime(); //tiden det tar för ett game tick 
-					wave->updateTimer(*player);
-					// map->detectCollison(*player); //hanterar collisions för kartan
-					player->controls(); //hantera kontrollerna
-					//player->handleInventory(window); //hanterar inventoryt
-					player->pickUpitems();
-					player->levelUp(); //hanterar om spelaren ska levla upp
-					enemy->handleEarthquake(*player); //metod som hanterar om man använder earthquake
-					wave->spawnEnemyWave(*enemy); //metoden som spawnar en ny wave
-					enemy->moveEnemy(*player); //metod som updaterar enemy
-					enemy->attack(*player);//metod som hanterar attack för fiende
-				}
-					if (escape == true) //om escape är aktivt
-					{
-						int tmpo = gui->chooseEscOption(window); //kollar om man trycker på nån av menyerna
-						if (tmpo == 0)//resume 
-							escape = false; 
-						if (tmpo == 1)//options
-						{
-							escape = true;
-							//temp = true;
-							options1 = true;
-							while (options1 == true)//om man är inne i options
-							{
+        window.clear();
 
-								int mtp = gui->backOption(window);
-								if (mtp == 0)
-								{
-									/*for (int i = 0; i < 5000; i++)
-									{
-										window.clear();
-									}*/
-									options1 = false;
-									escape = false;
-								//	temp = true;
+        if (currentState == MainMenu) {
+            window.draw(helpRect);
+            window.draw(playRect);
+            window.draw(quitRect);
+            window.draw(playText);
+            window.draw(helpText);
+            window.draw(quitText);
+        } else if (currentState == HelpScreen) {
+            sf::Text helpContent("Help Information\nPress Esc to go back", font, 20);
+            sf::Text ControlContent("Move with \n w \na s d \n, ",font, 20);
+            helpContent.setPosition(100, 100);
+        window.draw(ControlContent);      
+        window.draw(helpContent);
+            
+        }
+        // Draw other states as needed
+        window.display();
+    }    
+    return 0;
 
-
-								}
-							
-								window.clear();
-								gui->drawOptions(window);
-								window.display();
-							
-
-							}
-						}
-						if (tmpo == 2) //exit 
-						{	
-							player->playerHP = -100.0f;
-							player->alive();
-							temp = false;
-							escape = false;
-
-							
-									for (int i = 0; i < 5000; i++)
-									{
-										window.clear();
-										
-									}
-								
-						}
-					}
-
-					if (escape == false) {
-						gui->updateHealthBar(*player);
-						enemy->updateEnemy(player->bow, *player);
-						map->getCollision(*player);
-						map->spawnPowerUp();
-						map->handlePowerUps(*player);
-					
-					}
-
-				
-						window.clear();
-						//	map->draw(window,player);
-						map->drawmap(window);
-						if (escape == false) {
-
-						player->updatePlayer(window); //updatera spelaren rita + projectiler
-						enemy->draw(window, *player);
-					}
-					if (escape == true)
-					{
-						gui->drawEscMenu(window);
-					}
-			if (escape == false) {
-					gui->drawHealthBar(window, *player);
-					gui->drawTimer(*wave, window);
-					map->drawPowerUps(window);
-				}
-				window.display();
-		
-				if (player->alive() != true)
-					temp = false;
-			}
-
-
-
-		
-		}
-
-		if (tmp == 1)
-		{
-		
-			    temp = true;
-				options = true;
-				while (options == true)
-				{
-
-					int ytp = gui->backOption(window);
-					if (ytp == 0)
-					{
-						for (int i = 0; i < 5000; i++)
-						{
-							window.clear();
-						}
-						options = false;
-						escape = false;
-						temp = false;
-
-
-					}
-
-					window.clear();
-					gui->drawOptions(window);
-					window.display();
-
-
-				}
-			
-		}
-
-		if (tmp == 2&&temp==false) {
-
-			window.close();
-			return 0;
-		}
-          //hanterar event i sfml 
-
-		sf::Event event;
-		while (window.pollEvent(event))
-		{
-			if (event.type == sf::Event::Closed)
-			{
-				window.close();
-			}
-		}
-		window.clear();
-		if (temp == false) {
-			gui->drawMenu(window);
-		}
-		if (prevScore == true)
-		{
-			gui->drawPreviousScore(window, *wave,*player);
-		
-		}
-		window.display();
-		
-	}
-
-	//### rensar objekten jag skapat på heapen ###
-	delete player;
-	player = 0;
-	delete enemy;
-	enemy = 0;
-	delete map;
-	map = 0;
-	delete gui;
-	gui = 0;
-	delete wave;
-	wave = 0;
-
-		//while (player->alive() && window.isOpen()&&temp==true) //själva gameloopen som hela tiden tickar
-		//{
-		//
-		//	player->updateDeltaTime(); //tiden det tar för ett game tick 
-		//	wave->updateTimer(*player);
-		//	// map->detectCollison(*player); //hanterar collisions för kartan
-		//	player->controls(); //hantera kontrollerna
-		//	//player->handleInventory(window); //hanterar inventoryt
-		//	player->pickUpitems();
-		//	player->levelUp(); //hanterar om spelaren ska levla upp
-		//	enemy->handleEarthquake(*player);
-		//	wave->spawnEnemyWave(*enemy);
-		//	enemy->moveEnemy(*player);
-		//	enemy->attack(*player);
-		//	gui->updateHealthBar(*player);
-		//	enemy->updateEnemy(player->bow,*player);
-		//	map->getCollision(*player);
-		//	map->spawnPowerUp();
-		//	map->handlePowerUps(*player);
-
-		//	
-
-		//	sf::Event event; //hanterar event i sfml 
-		//	while (window.pollEvent(event))
-		//	{
-		//		if (event.type == sf::Event::Closed)
-		//		{
-		//			window.close();
-		//		}
-		//	}
-		//	window.clear();
-		//	
-		////	map->draw(window,player);
-		//	map->drawmap(window);
-		//	player->updatePlayer(window); //updatera spelaren rita + projectiler
-		//	enemy->draw(window, *player);
-		//	gui->drawHealthBar(window,*player);
-		//	gui->drawTimer(*wave, window);
-		//	map->drawPowerUps(window);
-		//	window.display();
-
-		//}
-	
-		//
-		////### rensar objekten jag skapat på heapen ###
-		//delete player;
-		//player = 0;
-		//delete enemy;
-		//enemy = 0;
-		//delete map;
-		//map = 0;
-		//delete gui;
-		//gui = 0;
-		//delete wave;
-		//wave = 0;
-
-	
 }
+
 
