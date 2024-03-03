@@ -12,9 +12,7 @@ int main() {
         if (event.type == sf::Event::Closed) {
           window.close();
         }
-        if (menu.get_current_state() == GameStates::MAIN_MENU) {
-          menu.handleEvent(window, event);
-        }
+        menu.handleEvent(window, event);
       }
 
       window.clear();

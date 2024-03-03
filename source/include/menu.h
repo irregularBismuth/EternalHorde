@@ -2,6 +2,8 @@
 #define MENU_H
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Window/Event.hpp>
+#include <SFML/Window/Keyboard.hpp>
 #include <cstdlib>
 #include <vector>
 #include <functional>
@@ -60,20 +62,26 @@ public:
             offsetY += buttonSize.y + spacing; 
         };
 
-        createButton("Play", []() { /*  Play */ });
-        createButton("Help", []() { /* Help */ });
-        createButton("Quit", [&]() { state = GameStates::EXIT; 
-                                    });
+        createButton("Play", [&]() { state = GameStates::GAME; });
+        createButton("Help", [&]() { state = GameStates::HELP_SCREEN; });
+        createButton("Quit", [&]() { state = GameStates::EXIT; });
     }
 
     void handleEvent(sf::RenderWindow& window, sf::Event& event) {
-        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+      if (state==GameStates::MAIN_MENU) {   
+      if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
             for (auto& button : buttons) {
                 if (button.isHovered(window)) {
                     button.onClick(); 
                 }
             }
         }
+      }
+      if (state==GameStates::HELP_SCREEN) {
+        if(event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
+          state=GameStates::MAIN_MENU;
+        }
+      }
     }
     
     void draw(sf::RenderWindow& window) {
