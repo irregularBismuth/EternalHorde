@@ -4,8 +4,7 @@
 int main() {
   sf::RenderWindow window(sf::VideoMode(800, 600), "Menu System");
   try {
-    Menu menu(window);
-    
+    Menu menu(window); 
     while (window.isOpen()) {
       sf::Event event;
       while (window.pollEvent(event)) {
@@ -18,11 +17,12 @@ int main() {
       window.clear();
       switch (menu.get_current_state()) {
         case GameStates::MAIN_MENU:
-          menu.draw(window);
+          menu.draw_menu(window);
           break;
         case GameStates::HELP_SCREEN:
           break;
         case GameStates::GAME:
+          menu.render_game(window);       
           break;
         case GameStates::EXIT:
           window.close();

@@ -22,10 +22,10 @@ struct PowerUp {
 class Map {
   public:
     Map();
-    ~Map();
+    ~Map() = default;
     
 
-    void draw(sf::RenderWindow& window);
+    void draw(sf::RenderWindow& window, const sf::Rect<float> camera);
     void loadTexture(const std::string&);
 
   private:

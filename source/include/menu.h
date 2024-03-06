@@ -8,7 +8,7 @@
 #include <vector>
 #include <functional>
 #include <iostream>
-
+#include "game_handler.h"
 enum class GameStates {
   MAIN_MENU,
   HELP_SCREEN,
@@ -20,7 +20,7 @@ struct Button {
     sf::RectangleShape shape;
     sf::Text label;
     std::function<void()> onClick;
-
+    
     Button(const sf::Vector2f& position, const sf::Vector2f& size, const std::string& text, sf::Font& font, const std::function<void()>& onClickFunc) {
         shape.setSize(size);
         shape.setPosition(position);
@@ -79,25 +79,42 @@ public:
       }
       if (state==GameStates::HELP_SCREEN) {
         if(event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
-          state=GameStates::MAIN_MENU;
+            state=GameStates::MAIN_MENU;
+        }
+      }
+      
+      if (state==GameStates::GAME) {
+        if(event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
+            state=GameStates::MAIN_MENU;
+            _handler = GameHandler();
         }
       }
     }
     
-    void draw(sf::RenderWindow& window) {
+    void draw_menu(sf::RenderWindow& window) {  
         for (auto& button : buttons) {
             window.draw(button.shape);
             window.draw(button.label);
         }
     }
 
+    void render_game(sf::RenderWindow& window) {
+        _handler.draw(window);  
+    }
+
     GameStates& get_current_state() {
       return state;
     }
+    
+    void update() {
+      
+    }
+
 private:
     sf::Font font;
     std::vector<Button> buttons;
     GameStates state;
+    GameHandler _handler;
 };
 
 

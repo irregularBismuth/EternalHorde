@@ -16,3 +16,13 @@ void Map::loadTexture(const std::string& filename) {
     std::cout<<"error loading tileset"<<std::endl;
   }
 }
+
+
+void Map::draw(sf::RenderWindow& window, const sf::Rect<float> camera) {
+  for (size_t y = 0; y<_TILE_HEIGHT; ++y) {
+    for (size_t x = 0; x<_TILE_WIDTH; ++x) {
+      Tile curr_tile = _tile_map[y*_TILE_WIDTH + x]; 
+      
+    }
+  }
+}
