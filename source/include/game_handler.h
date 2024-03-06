@@ -22,11 +22,11 @@ class GameHandler {
 
     void draw(sf::RenderWindow& window) {
       _player.update();
-      _enemy.update();
-      _map.update();
+      _enemy.update(_player);
+      _map.update(_player);
       _map.draw(window,_player.get_camera());
-      _enemy.draw();
-      _player.draw();
+      _enemy.draw(window);
+      _player.draw(window);
     }
     
   private:

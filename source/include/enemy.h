@@ -1,14 +1,14 @@
 #ifndef ENEMY_H
 #define ENEMY_H
 
-#include <SFML/Main.hpp>
+class Player;
 
 class Enemy {
   public:
     Enemy() {};
    ~Enemy() = default;
     
-    void update() {
+    void update(Player& player) {
        
     }
 

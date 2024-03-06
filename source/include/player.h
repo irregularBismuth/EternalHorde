@@ -2,7 +2,7 @@
 #define PLAYER_H
 
 #include <SFML/Graphics/Rect.hpp>
-
+#include <SFML/Main.hpp>
 struct PowerUp;
 
 class Player {
@@ -14,13 +14,6 @@ class Player {
     return _camera;
   }
 
-  void pick_up_power_up(PowerUp effect) {
-
-  }
-  
-  void active_power_up() {
-
-  }
 
   void update() {
     update_camera();
@@ -30,9 +23,21 @@ class Player {
     _camera.left = std::max(0.f, _player_pos.x - _camera.width / 2);
     _camera.top = std::max(0.f, _player_pos.y - _camera.height / 2);
   }
+  
+  void handle_input(sf::Event& event) {
+     
+
+  }
+
+  void draw(sf::RenderWindow& window) {
+
+  }
+  
   public:
     sf::Rect<float> _camera;
     sf::Vector2f _player_pos;
+    unsigned int _health;
+     
 
 };
 
